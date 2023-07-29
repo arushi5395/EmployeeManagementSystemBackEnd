@@ -1,9 +1,11 @@
 package com.arushi.employeemanagementsystem.service.impl;
 
 import com.arushi.employeemanagementsystem.dto.EmployeeDto;
+import com.arushi.employeemanagementsystem.entity.Department;
 import com.arushi.employeemanagementsystem.entity.Employee;
 import com.arushi.employeemanagementsystem.exception.ResourceNotFoundException;
 import com.arushi.employeemanagementsystem.mapper.EmployeeMapper;
+import com.arushi.employeemanagementsystem.repository.DepartmentRepository;
 import com.arushi.employeemanagementsystem.repository.EmployeeRepository;
 import com.arushi.employeemanagementsystem.service.EmployeeService;
 import lombok.AllArgsConstructor;
@@ -19,9 +21,15 @@ import java.util.stream.Collectors;
 public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
     @Override
     public EmployeeDto createEmployee(EmployeeDto employeeDto) {
         Employee employee = EmployeeMapper.mapToEmployee(employeeDto);
+        Department department = departmentRepository.findById(employeeDto.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department does not exist with given id: "
+                        + employeeDto.getDepartmentId()));
+        employee.setDepartment(department);
         Employee savedEmployee = employeeRepository.save(employee);
 
         return EmployeeMapper.mapToEmployeeDto(savedEmployee);
@@ -49,6 +57,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setFirstName(updatedEmployee.getFirstName());
         employee.setLastName(updatedEmployee.getLastName());
         employee.setEmail(updatedEmployee.getEmail());
+
+        Department department = departmentRepository.findById(updatedEmployee.getDepartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department does not exist with given id: "
+                        + updatedEmployee.getDepartmentId()));
+        employee.setDepartment(department);
 
         Employee updatedEmployeeObj = employeeRepository.save(employee);
 
